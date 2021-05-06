@@ -53,8 +53,8 @@ namespace MISA.Import.Controllers
             // Trả về số lượng bản ghi hợp lệ, không hợp lệ và khách hàng
             var result = new
             {
-                numberOfValidation = CountNumberValidation(customers),
-                numberOfInvalidate = customers.Count - CountNumberValidation(customers),
+                validRowsCount = ValidCount(customers),
+                invalidRowsCount = customers.Count - ValidCount(customers),
                 data = customers
             };
 
@@ -72,7 +72,7 @@ namespace MISA.Import.Controllers
         [HttpPost]
         public IActionResult Post(List<Customer> customers)
         {
-            var res = AddToDatabase(customers);
+            var res = Insert(customers);
             if (res > 0)
             {
                 return StatusCode(201, res);
@@ -164,7 +164,7 @@ namespace MISA.Import.Controllers
 
         // Hàm thêm khách hàng dưới dạng list vào data base
         // <return>Số lượng bản ghi lưu vào data base thành công</return>
-        private int AddToDatabase(List<Customer> customers)
+        private int Insert(List<Customer> customers)
         {
             // Khởi tạo tham số số lượng bản ghi
             int rowsAffect = 0;
@@ -194,7 +194,6 @@ namespace MISA.Import.Controllers
                 // Kiểm tra nhóm khách hàng có tồn tại không
                 CheckCustomerGroupExist(customer);
             }
-
 
             // Kiểm tra mã khách hàng trong file
             for(int i = 0; i < customers.Count; i++)
@@ -303,17 +302,17 @@ namespace MISA.Import.Controllers
             // Mã khách hàng
             if(CheckAttributeExistInDatabase("CustomerCode", customer.CustomerCode))
             {
-                customer.Status += "Mã khách hàng đã tồn tại trên database\n";
+                customer.Status += "Mã khách hàng đã tồn tại trên hệ thống\n";
             }
             // Số điện thoại
             if (CheckAttributeExistInDatabase("PhoneNumber", customer.PhoneNumber))
             {
-                customer.Status += "Số điện thoại đã tồn tại trên database\n";
+                customer.Status += "Số điện thoại đã tồn tại trên hệ thống\n";
             }
             // Email
             if (CheckAttributeExistInDatabase("Email", customer.Email))
             {
-                customer.Status += "Email đã tồn tại trên database\n";
+                customer.Status += "Email đã tồn tại trên hệ thống\n";
             }
         }
 
@@ -336,13 +335,13 @@ namespace MISA.Import.Controllers
             return exist;
         }
 
-        // Hàm đếm số bản ghi không hợp lệ
-        private int CountNumberValidation(List<Customer> customers)
+        // Hàm đếm số bản ghi hợp lệ
+        private int ValidCount(List<Customer> customers)
         {
             int result = 0;
             for (int i = 0; i < customers.Count; i++)
             {
-                if (customers[i].Status == null)
+                if (string.IsNullOrEmpty(customers[i].Status))
                 {
                     result++;
                 }
